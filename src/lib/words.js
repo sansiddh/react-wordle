@@ -52,9 +52,67 @@ export const getGuessStatuses = guess => {
   return statuses;
 };
 
+export const getGuessStatusesWithSolution = (guess, customSolution) => {
+  const splitGuess = guess.toLowerCase().split('');
+  const splitSolution = customSolution.toLowerCase().split('');
+
+  const statuses = [];
+  const solutionCharsTaken = splitSolution.map(_ => false);
+
+  // handle all correct cases first
+  splitGuess.forEach((letter, i) => {
+    if (letter === splitSolution[i]) {
+      statuses[i] = 'correct';
+      solutionCharsTaken[i] = true;
+      return;
+    }
+  });
+
+  splitGuess.forEach((letter, i) => {
+    if (statuses[i]) return;
+
+    if (!splitSolution.includes(letter)) {
+      // handles the absent case
+      statuses[i] = 'absent';
+      return;
+    }
+
+    // now we are left with "present"s
+    const indexOfPresentChar = splitSolution.findIndex(
+      (x, index) => x === letter && !solutionCharsTaken[index]
+    );
+
+    if (indexOfPresentChar > -1) {
+      statuses[i] = 'present';
+      solutionCharsTaken[indexOfPresentChar] = true;
+      return;
+    } else {
+      statuses[i] = 'absent';
+      return;
+    }
+  });
+
+  return statuses;
+};
+
 export const getStatuses = guesses => {
   const charObj = {};
   const splitSolution = solution.toUpperCase().split('');
+
+  guesses.forEach(word => {
+    word.split('').forEach((letter, i) => {
+      if (!splitSolution.includes(letter)) return (charObj[letter] = 'absent');
+      if (letter === splitSolution[i]) return (charObj[letter] = 'correct');
+      if (charObj[letter] !== 'correct') return (charObj[letter] = 'present');
+    });
+  });
+
+  return charObj;
+};
+
+export const getStatusesWithSolution = (guesses, customSolution) => {
+  const charObj = {};
+  const splitSolution = customSolution.toUpperCase().split('');
 
   guesses.forEach(word => {
     word.split('').forEach((letter, i) => {
@@ -78,6 +136,41 @@ export const findFirstUnusedReveal = (word, guesses) => {
   const lettersLeftArray = [];
   const guess = guesses[guesses.length - 1];
   const statuses = getGuessStatuses(guess);
+  const splitWord = word.toUpperCase().split('');
+  const splitGuess = guess.toUpperCase().split('');
+
+  for (let i = 0; i < splitGuess.length; i++) {
+    if (statuses[i] === 'correct' || statuses[i] === 'present')
+      lettersLeftArray.push(splitGuess[i]);
+
+    if (statuses[i] === 'correct' && splitWord[i] !== splitGuess[i])
+      return `Must use ${splitGuess[i]} in position ${i + 1}`;
+  }
+
+  // check for the first unused letter, taking duplicate letters
+  // into account - see issue #198
+  let n;
+  for (const letter of splitWord) {
+    n = lettersLeftArray.indexOf(letter);
+    if (n !== -1) {
+      lettersLeftArray.splice(n, 1);
+    }
+  }
+
+  if (lettersLeftArray.length > 0)
+    return `Guess must contain ${lettersLeftArray[0]}`;
+
+  return false;
+};
+
+export const findFirstUnusedRevealWithSolution = (word, guesses, customSolution) => {
+  if (guesses.length === 0) {
+    return false;
+  }
+
+  const lettersLeftArray = [];
+  const guess = guesses[guesses.length - 1];
+  const statuses = getGuessStatusesWithSolution(guess, customSolution);
   const splitWord = word.toUpperCase().split('');
   const splitGuess = guess.toUpperCase().split('');
 
@@ -178,10 +271,21 @@ export const getWordOfDay = () => {
   const index = Math.floor((now - epochMs) / msInDay);
   const nextday = (index + 1) * msInDay + epochMs;
 
+  // export const { solution, solutionIndex, tomorrow } = getWordOfDay();
+  const solution = 'woman';  // Your chosen word (must be 5 letters, lowercase)
+  const solutionIndex = 999;  // Any number you want
+  const tomorrow = Date.now() + 86400000; // Tomorrow's timestamp
+
+  // return {
+  //   solution: WORDS[index % WORDS.length],
+  //   solutionIndex: index,
+  //   tomorrow: nextday,
+  // };
+
   return {
-    solution: WORDS[index % WORDS.length],
-    solutionIndex: index,
-    tomorrow: nextday,
+    solution: solution,
+    solutionIndex: solutionIndex,
+    tomorrow: tomorrow,
   };
 };
 
