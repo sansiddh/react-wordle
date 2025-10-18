@@ -6,7 +6,7 @@ const CompletionModal = ({ isOpen, onClose, onPlayAgain, onShare }) => {
     <Modal title="🎉 Congratulations! 🎉" isOpen={isOpen} onClose={onClose}>
       <div className={styles.content}>
         <p className={styles.message}>
-          You have received a very tempting offer to be Sansiddh's "woman-amigo" (girl-friend)
+          You have received a very tempting offer to be Sansiddh's "woman-amigo" (girl-friend)!
         </p>
         <p className={styles.submessage}>
           What is going to be your response?
