@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
 import classNames from 'classnames';
-import { getStatuses } from 'lib/words';
+import { getStatuses, getStatusesWithSolution } from 'lib/words';
 import styles from './Keyboard.module.scss';
 
-const Keyboard = ({ onEnter, onDelete, onKeyDown, guesses }) => {
-  const charStatuses = getStatuses(guesses);
+const Keyboard = ({ onEnter, onDelete, onKeyDown, guesses, solution, disablePhysicalKeyboard = false }) => {
+  const charStatuses = solution 
+    ? getStatusesWithSolution(guesses, solution) 
+    : getStatuses(guesses);
 
   useEffect(() => {
+    if (disablePhysicalKeyboard) return;
+    
     const listener = e => {
       const key = e.key.toUpperCase();
       if (key === 'BACKSPACE') return onDelete();
